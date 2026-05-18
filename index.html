@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROI Calculator — Impressive</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black:  #080808;
+    --grey1:  #0f0f0f;
+    --grey2:  #161616;
+    --grey3:  #1e1e1e;
+    --grey4:  #282828;
+    --grey5:  #363636;
+    --pink:   #f0286a;
+    --pink-glow: rgba(240,40,106,.18);
+    --pink-dim:  rgba(240,40,106,.08);
+    --white:  #ffffff;
+    --off-white: #ffffff;
+    --muted:  #ffffff;
+    --dimmer: #ffffff;
+    --border: #1e1e1e;
+    --border-bright: #2a2a2a;
+    --pos:    #4ade80;
+    --neg:    #f87171;
+    --track:  #2a2a2a;
+  }
+
+  html, body {
+    min-height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    font-size: 14px;
+  }
+  body { display: flex; flex-direction: column; min-height: 100vh; overflow-y: auto; }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--black);
+    border-bottom: 1px solid var(--border);
+    padding: 0 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  /* Subtle pink line under header */
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0;
+    width: 120px; height: 1px;
+    background: linear-gradient(to right, var(--pink), transparent);
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--pink);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-icon svg { display: block; }
+  .logo-wordmark {
+    font-size: 20px; font-weight: 800;
+    letter-spacing: -0.8px; color: var(--white);
+    text-transform: lowercase; line-height: 1;
+  }
+  .logo-wordmark em { font-style: normal; color: var(--pink); }
+
+  .header-right { display: flex; align-items: center; gap: 20px; }
+  .header-badge {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--pink);
+    border: 1px solid rgba(240,40,106,.3);
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: var(--pink-dim);
+  }
+  .header-cta {
+    font-size: 11px; font-weight: 600;
+    color: var(--white); letter-spacing: 0.3px;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .header-cta:hover { color: var(--white); }
+
+  /* ── HERO STRIP ── */
+  .hero-strip {
+    background: var(--grey1);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Pink ambient glow top-left */
+  .hero-strip::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -40px;
+    width: 300px; height: 150px;
+    background: radial-gradient(ellipse, rgba(240,40,106,.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-left { display: flex; flex-direction: column; gap: 4px; }
+  .hero-eyebrow {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--pink);
+  }
+  .hero-title {
+    font-size: 22px; font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--white);
+    line-height: 1.15;
+  }
+  .hero-title span { color: var(--pink); }
+  .hero-sub {
+    font-size: 12px; font-weight: 400;
+    color: var(--white); margin-top: 2px;
+    letter-spacing: 0.1px;
+  }
+
+  /* ── TOGGLES ── */
+  .toggles-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+  .toggle-group { display: flex; flex-direction: column; gap: 6px; }
+  .toggle-label {
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--white);
+  }
+  .toggle-buttons {
+    display: flex;
+    background: var(--grey3);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 3px; gap: 2px;
+  }
+  .toggle-btn {
+    padding: 7px 16px; border: none; border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    background: transparent;
+    color: var(--white); white-space: nowrap;
+  }
+  .toggle-btn.active {
+    background: var(--pink);
+    color: var(--white);
+    box-shadow: 0 2px 12px rgba(240,40,106,.35);
+  }
+  .toggle-btn:hover:not(.active):not(:disabled) { color: var(--white); background: var(--grey4); }
+  .toggle-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+  /* ── LAYOUT ── */
+  .main { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    flex: 0 0 56%;
+    padding: 28px 36px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    background: var(--black);
+  }
+
+  .section-title {
+    font-size:13px; font-weight: 700;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 12px;
+    background: var(--pink);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* INPUT ROWS */
+  .input-row {
+    display: grid;
+    grid-template-columns: 172px 1fr 100px;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 6px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    transition: background 0.12s;
+  }
+  .input-row:hover { background: var(--grey2); }
+  .input-name { font-size: 15px; font-weight: 500; color: var(--white); line-height: 1.3; }
+
+  /* SLIDER */
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 3px;
+    border-radius: 100px; outline: none; cursor: pointer; display: block;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: var(--white);
+    cursor: pointer;
+    box-shadow: 0 0 0 2px var(--pink), 0 2px 6px rgba(0,0,0,.5);
+    border: none; transition: transform 0.1s, box-shadow 0.15s;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px var(--pink), 0 0 12px rgba(240,40,106,.4);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 15px; height: 15px; border-radius: 50%;
+    background: var(--white); cursor: pointer;
+    box-shadow: 0 0 0 2px var(--pink); border: none;
+  }
+
+  /* COMBINED VALUE FIELD */
+  .val-wrap { position: relative; width: 100%; }
+  .val-prefix {
+    position: absolute; left: 8px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px; font-weight: 600;
+    color: var(--white);
+    pointer-events: none; user-select: none; line-height: 1;
+  }
+  .val-suffix {
+    position: absolute; right: 8px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px; font-weight: 600;
+    color: var(--white);
+    pointer-events: none; user-select: none; line-height: 1;
+  }
+  .val-input {
+    background: var(--grey3);
+    border: 1px solid var(--border-bright);
+    border-radius: 5px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size:15px; font-weight: 700;
+    padding: 6px 10px;
+    width: 100%; text-align: right;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    -moz-appearance: textfield;
+  }
+  .val-input.has-prefix { padding-left: 18px; }
+  .val-input.has-suffix { padding-right: 22px; }
+  .val-input::-webkit-outer-spin-button,
+  .val-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .val-input:focus {
+    border-color: var(--pink);
+    background: var(--grey2);
+    box-shadow: 0 0 0 3px var(--pink-dim);
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    flex: 1;
+    background: var(--grey1);
+    padding: 28px 28px;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+
+  .results-grid { display: flex; flex-direction: column; gap: 1px; }
+
+  .result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 14px;
+    border-radius: 5px;
+    transition: background 0.12s;
+  }
+  .result-row:hover { background: var(--grey2); }
+
+  /* Highlight key rows */
+  .result-row.highlight {
+    background: var(--pink-dim);
+    border: 1px solid rgba(240,40,106,.15);
+    border-radius: 6px;
+  }
+  .result-row.highlight:hover { background: rgba(240,40,106,.12); }
+
+  .result-label { font-size: 15px; font-weight: 400; color: var(--white); }
+  .result-value { font-size: 15px; font-weight: 700; color: var(--white); text-align: right; }
+  .result-value.pos  { color: var(--pos); }
+  .result-value.neg  { color: var(--neg); }
+  .result-value.pink { color: var(--pink); font-size: 17px; }
+
+  /* ROAS SCALE */
+  .roas-subtitle {
+    font-size: 12px; font-weight: 400; color: var(--white);
+    line-height: 1.65; margin-bottom: 20px;
+  }
+  .roas-target-row {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 24px;
+    padding: 14px 16px;
+    background: var(--grey2);
+    border-radius: 8px;
+    border: 1px solid var(--border-bright);
+  }
+  .roas-target-label { font-size: 12px; font-weight: 600; color: var(--white); flex: 1; }
+  .roas-select {
+    background: var(--grey3);
+    border: 1.5px solid var(--pink);
+    border-radius: 5px;
+    color: var(--pink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 700;
+    padding: 7px 30px 7px 12px;
+    outline: none; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23f0286a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  .roas-select option { background: #1e1e1e; color: #fff; }
+
+  /* ── BOTTOM BAR ── */
+  .bottom-bar {
+    background: var(--grey1);
+    border-top: 1px solid var(--border);
+    padding: 12px 36px;
+    display: flex; gap: 28px; align-items: center;
+    flex-shrink: 0;
+  }
+  .bottom-left { display: flex; gap: 28px; align-items: center; flex: 1; }
+  .bottom-right { font-size: 11px; color: var(--white); letter-spacing: 0.3px; }
+  .bottom-right a { color: var(--pink); text-decoration: none; font-weight: 600; }
+  .bottom-right a:hover { color: var(--white); }
+
+  .pill-label {
+    font-size: 12px; font-weight: 500; color: var(--white);
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none;
+    transition: color 0.15s;
+  }
+  .pill-label:hover { color: var(--white); }
+  .pill-switch {
+    width: 36px; height: 20px;
+    background: var(--grey5);
+    border-radius: 100px; position: relative;
+    transition: background .18s; flex-shrink: 0;
+  }
+  .pill-switch.on { background: var(--pink); box-shadow: 0 0 8px rgba(240,40,106,.4); }
+  .pill-switch::after {
+    content: ''; position: absolute;
+    width: 14px; height: 14px;
+    background: var(--white); border-radius: 50%;
+    top: 3px; left: 3px; transition: left .18s;
+  }
+  .pill-switch.on::after { left: 19px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--grey4); border-radius: 10px; }
+
+  /* ── ANNUAL PROJECTION MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--grey1);
+    border: 1px solid var(--border-bright);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(240,40,106,.1);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform: translateY(12px) scale(0.98); }
+    to   { opacity:1; transform: translateY(0)   scale(1); }
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--white);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .modal-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 12px;
+    background: var(--pink);
+    border-radius: 2px; flex-shrink: 0;
+  }
+  .modal-close {
+    width: 28px; height: 28px;
+    background: var(--grey3);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    color: var(--white);
+    font-size: 16px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .modal-close:hover { background: var(--grey4); border-color: var(--pink); }
+  .modal-body { padding: 20px 24px 24px; }
+  .annual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .annual-card {
+    background: var(--grey2);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: border-color 0.15s;
+  }
+  .annual-card:hover { border-color: rgba(240,40,106,.3); }
+  .annual-card.featured {
+    background: var(--pink-dim);
+    border-color: rgba(240,40,106,.25);
+    grid-column: span 2;
+  }
+  .annual-card-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--white); letter-spacing: 0.5px;
+    text-transform: uppercase; opacity: 0.65;
+  }
+  .annual-card-value {
+    font-size: 24px; font-weight: 800;
+    color: var(--white); letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .annual-card.featured .annual-card-value { color: var(--white); font-size: 32px; }
+  .annual-card-sub {
+    font-size: 11px; font-weight: 400;
+    color: var(--white); opacity: 0.45; margin-top: 3px;
+  }
+
+  /* ── ANNUAL VIEW TOGGLE ── */
+  .view-toggle {
+    display: flex;
+    background: var(--grey3);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 3px;
+    gap: 2px;
+    margin-bottom: 20px;
+  }
+  .view-toggle-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: var(--white);
+    opacity: 0.5;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .view-toggle-btn.active {
+    background: var(--pink);
+    color: var(--white);
+    opacity: 1;
+    box-shadow: 0 2px 10px rgba(240,40,106,.3);
+  }
+  .view-toggle-btn:hover:not(.active) { opacity: 0.8; }
+  .annual-view-label {
+    font-size: 11px; font-weight: 500;
+    color: var(--white); opacity: 0.5;
+    margin-bottom: 16px; line-height: 1.5;
+  }
+
+  /* ── PAYBACK PERIOD MODAL ── */
+  .ramp-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .ramp-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    background: var(--grey3);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .ramp-btn:hover { border-color: var(--pink); background: var(--grey4); }
+  .ramp-btn.active { background: var(--pink); border-color: var(--pink); color: var(--white); box-shadow: 0 2px 12px rgba(240,40,106,.35); }
+  .ramp-btn .ramp-label { font-size: 13px; font-weight: 700; display: block; margin-bottom: 3px; }
+  .ramp-btn .ramp-sub { font-size: 10px; font-weight: 400; opacity: 0.75; display: block; }
+
+  .payback-hero {
+    background: var(--grey2);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .payback-hero-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--white); opacity: 0.6; margin-bottom: 6px; }
+  .payback-hero-value { font-size: 40px; font-weight: 800; color: var(--pink); letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
+  .payback-hero-sub { font-size: 12px; color: var(--white); opacity: 0.6; }
+
+  .payback-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .payback-stat {
+    background: var(--grey2);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .payback-stat-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--white); opacity: 0.55; margin-bottom: 4px; }
+  .payback-stat-value { font-size: 18px; font-weight: 800; color: var(--white); }
+  .payback-stat-value.pos { color: var(--pos); }
+  .payback-stat-value.neg { color: var(--neg); }
+
+  .payback-chart-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--white); opacity: 0.5; margin-bottom: 10px; }
+  .payback-chart { width: 100%; display: flex; flex-direction: column; gap: 0; }
+  .payback-bars-row { width: 100%; height: 140px; display: flex; align-items: flex-end; gap: 3px; }
+  .payback-labels-row { width: 100%; display: flex; gap: 3px; margin-top: 8px; }
+  .payback-label-cell { flex: 1; text-align: center; font-size: 11px; font-weight: 700; color: var(--white); min-width: 0; }
+  .payback-bar-wrap {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 0; position: relative;
+    cursor: pointer;
+  }
+  .payback-bar-wrap:hover .payback-bar { filter: brightness(1.3); }
+  .payback-bar-wrap:hover .bar-tooltip { display: block; }
+  .bar-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    border: 1px solid var(--pink);
+    border-radius: 6px;
+    padding: 8px 10px;
+    white-space: nowrap;
+    z-index: 200;
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  .bar-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--pink);
+  }
+  /* Right-side bars — anchor tooltip to right */
+  .tip-right .bar-tooltip { left: auto; right: 0; transform: none; }
+  .tip-right .bar-tooltip::after { left: auto; right: 10px; transform: none; }
+  /* Left-side bars — anchor tooltip to left */
+  .tip-left .bar-tooltip { left: 0; transform: none; }
+  .tip-left .bar-tooltip::after { left: 10px; transform: none; }
+  .payback-bar-wrap { position: relative; }
+  /* Ensure tooltip isn't clipped */
+  .payback-bars-row { overflow: visible !important; }
+  .payback-chart { overflow: visible !important; }
+  .bar-tooltip-month {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 5px;
+  }
+  .bar-tooltip-row {
+    font-size: 11px; font-weight: 500; color: var(--white);
+    display: flex; justify-content: space-between; gap: 12px;
+    line-height: 1.6;
+  }
+  .bar-tooltip-row span:last-child { font-weight: 700; }
+  .payback-bar {
+    width: 100%; border-radius: 3px 3px 0 0;
+    transition: height 0.3s ease;
+    min-height: 2px;
+  }
+  .payback-bar.neg-bar { background: rgba(248,113,113,0.6); border-radius: 0 0 3px 3px; }
+  .payback-bar.pos-bar { background: rgba(74,222,128,0.7); border-radius: 3px 3px 0 0; }
+  .payback-bar.breakeven { background: var(--pink); }
+  .payback-month-label { font-size: 11px; font-weight: 700; color: var(--white); opacity: 1; margin-top: 6px; }
+
+  .payback-axis { width: 100%; height: 1px; background: var(--border-bright); margin: 0; flex-shrink: 0; }
+  .payback-not-viable {
+    text-align: center; padding: 32px 20px;
+    color: var(--neg); font-size: 14px; font-weight: 600;
+  }
+
+  @media (max-width:840px) {
+    body { overflow-y: auto; height: auto; }
+    .main { flex-direction: column; overflow: visible; height: auto; min-height: 0; }
+    .left-panel { flex: none; height: auto; overflow-y: visible; border-right: none; border-bottom: 1px solid var(--border); }
+    .right-panel { flex: none; height: auto; overflow-y: visible; min-height: 0; }
+    .input-row { grid-template-columns: 130px 1fr 90px; gap: 8px; }
+    .hero-strip { flex-direction: column; align-items: flex-start; }
+    .hero-title { font-size: 18px; }
+    .bottom-bar { flex-wrap: wrap; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon" style="background:none;padding:0;overflow:hidden;">
+      <img src="data:image/png;base64,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" style="width:32px;height:32px;display:block;border-radius:6px;">
+    </div>
+    <div class="logo-wordmark">impressive<em>.</em></div>
+  </div>
+  <div class="header-right">
+    <div class="header-badge">ROI Calculator</div>
+    <a href="https://impressive.com.au" target="_blank" class="header-cta">impressive.com.au →</a>
+  </div>
+</div>
+
+<div class="hero-strip">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Performance Calculator</div>
+    <h1 class="hero-title" id="main-title">ROI FOR <span>SERVICE</span> BASED BUSINESSES</h1>
+    <div class="hero-sub">Adjust the inputs to model your projected return on investment</div>
+  </div>
+  <div class="toggles-row">
+    <div class="toggle-group">
+      <div class="toggle-label">Client Type</div>
+      <div class="toggle-buttons" id="clientType">
+        <button class="toggle-btn active" data-val="leadgen">Lead Generation</button>
+        <button class="toggle-btn" data-val="ecommerce">eCommerce</button>
+      </div>
+    </div>
+    <div class="toggle-group">
+      <div class="toggle-label">Traffic Type</div>
+      <div class="toggle-buttons" id="trafficType">
+        <button class="toggle-btn active" data-val="paid">Paid</button>
+        <button class="toggle-btn" data-val="organic">Organic</button>
+      </div>
+    </div>
+    <div class="toggle-group">
+      <div class="toggle-label">Project Type</div>
+      <div class="toggle-buttons" id="projectType">
+        <button class="toggle-btn active" data-val="landing">Landing Page</button>
+        <button class="toggle-btn" data-val="website">Website</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="left-panel">
+    <div class="section-title">Input Parameters</div>
+    <div id="sliders-container"></div>
+  </div>
+  <div class="right-panel" id="right-panel"></div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bottom-left">
+    <label class="pill-label" onclick="toggleRoasScale()">
+      <div class="pill-switch" id="switchRoas"></div>
+      Show ROAS Scale
+    </label>
+    <label class="pill-label" onclick="openAnnualModal()">
+      <div class="pill-switch" id="switchAnnual"></div>
+      Annual Projection
+    </label>
+    <label class="pill-label" id="paybackToggle" onclick="openPaybackModal()" style="display:none">
+      <div class="pill-switch" id="switchPayback"></div>
+      Payback Period
+    </label>
+  </div>
+  <div class="bottom-right">Powered by <a href="https://impressive.com.au" target="_blank">impressive.com.au</a></div>
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const state = {
+  clientType: 'leadgen', trafficType: 'paid', projectType: 'landing',
+  values: {}, showRoasScale: false, targetRoas: 8,
+};
+let currentConfigs = [], lastComputed = {};
+
+// ─── TOGGLE SETUP ─────────────────────────────────────────────────────────────
+['clientType','trafficType','projectType'].forEach(key => {
+  document.getElementById(key).querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      document.getElementById(key).querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state[key] = btn.dataset.val;
+      if (key === 'clientType') { updateTitle(); lockEcommerceProject(); }
+      if (key === 'trafficType') lockOrganicProject();
+      // Only clear values for keys that don't exist in the new config
+      const newKeys = getConfig().map(c => c.key);
+      Object.keys(state.values).forEach(k => {
+        if (!newKeys.includes(k)) delete state.values[k];
+      });
+      render();
+    });
+  });
+});
+
+function lockEcommerceProject() {
+  const btns = document.querySelectorAll('#projectType .toggle-btn');
+  if (state.clientType === 'ecommerce') {
+    btns.forEach(b => {
+      b.classList.remove('active');
+      b.disabled = b.dataset.val === 'landing';
+      b.style.opacity = b.dataset.val === 'landing' ? '0.3' : '1';
+      if (b.dataset.val === 'website') b.classList.add('active');
+    });
+    state.projectType = 'website';
+  } else {
+    // Restore landing page availability (organic lock may still apply)
+    btns.forEach(b => {
+      if (state.trafficType !== 'organic') {
+        b.disabled = false;
+        b.style.opacity = '1';
+      }
+    });
+  }
+}
+
+function lockOrganicProject() {
+  const btns = document.querySelectorAll('#projectType .toggle-btn');
+  if (state.trafficType === 'organic') {
+    btns.forEach(b => {
+      b.classList.remove('active'); b.disabled = b.dataset.val === 'landing';
+      b.style.opacity = b.dataset.val === 'landing' ? '0.3' : '1';
+      if (b.dataset.val === 'website') b.classList.add('active');
+    });
+    state.projectType = 'website';
+  } else { btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; }); }
+}
+
+function updateTitle() {
+  document.getElementById('main-title').innerHTML =
+    state.clientType === 'ecommerce'
+      ? 'ROI FOR <span>ECOMMERCE</span> BASED BUSINESSES'
+      : 'ROI FOR <span>SERVICE</span> BASED BUSINESSES';
+}
+
+function toggleRoasScale() {
+  state.showRoasScale = !state.showRoasScale;
+  document.getElementById('switchRoas').classList.toggle('on', state.showRoasScale);
+  renderRight();
+}
+
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// Each field: key, label, min, max, default, step, fmt, derived?
+// step must evenly divide (max - min) to avoid slider snap gaps.
+// fmt: '$' = dollar with 2dp, '$k' = dollar 0dp, '%' = percent, 'n' = integer
+
+function getConfig() {
+  const m = state.clientType + '_' + state.trafficType;
+  const C = {
+    leadgen_paid: [
+      { key:'cpc',       label:'CPC (Cost Per Click)',    min:0.10, max:300,     def:1,    step:0.10, fmt:'$',  dp:2 },
+      { key:'ctr',       label:'CTR (Link)',              min:0.1,  max:25,      def:1,    step:0.1,  fmt:'%',  dp:1 },
+      { key:'adspend',   label:'Ad Spend',               min:1,    max:1000000, def:1000, step:1,    fmt:'$k' },
+      { key:'bookedcvr', label:'Booked Call CVR',        min:0.1,  max:100,     def:3,    step:0.1,  fmt:'%',  dp:1 },
+      { key:'showrate',  label:'Call Show Rate',         min:10,   max:100,     def:80,   step:5,    fmt:'%'  },
+      { key:'closerate', label:'Call Close Rate',        min:5,    max:100,     def:30,   step:5,    fmt:'%'  },
+      { key:'ltv',       label:'LTV',                    min:500,  max:100000,  def:1000, step:500,  fmt:'$k' },
+      { key:'maxcpa',    label:'Max CPA',                min:1,    max:50000,   def:null, step:1,    fmt:'$k', derived:'ltv3' },
+      { key:'mgmtfee',   label:'Monthly Management Fee', min:1000, max:100000,  def:4000, step:1000, fmt:'$k' },
+      { key:'margin',    label:'Profit Margin',          min:1,    max:100,     def:30,   step:1,    fmt:'%'  },
+    ],
+    leadgen_organic: [
+      { key:'ctrorg',    label:'CTR (Organic)',           min:1,    max:25,      def:15,   step:1,    fmt:'%'  },
+      { key:'searchvol', label:'Keyword Search Volume',   min:1000, max:500000,  def:60000,step:1000, fmt:'n'  },
+      { key:'webcvr',    label:'Website Conversion Rate', min:0.1,  max:25,      def:1,    step:0.1,  fmt:'%'  },
+      { key:'showrate',  label:'Call Show Rate',         min:10,   max:100,     def:75,   step:5,    fmt:'%'  },
+      { key:'closerate', label:'Call Close Rate',        min:5,    max:100,     def:30,   step:5,    fmt:'%'  },
+      { key:'ltv',       label:'LTV',                    min:500,  max:100000,  def:5000, step:500,  fmt:'$k' },
+      { key:'maxcpa',    label:'Max CPA',                min:1,    max:50000,   def:null, step:1,    fmt:'$k', derived:'ltv3' },
+      { key:'mgmtfee',   label:'Monthly Management Fee', min:1000, max:100000,  def:4250, step:250,  fmt:'$k' },
+      { key:'margin',    label:'Profit Margin',          min:1,    max:100,     def:30,   step:1,    fmt:'%'  },
+    ],
+    ecommerce_paid: [
+      { key:'cpc',       label:'CPC (Cost Per Click)',    min:0.10, max:300,     def:3,    step:0.10, fmt:'$',  dp:2 },
+      { key:'ctr',       label:'CTR (Link)',              min:0.1,  max:25,      def:3.5,  step:0.1,  fmt:'%',  dp:1 },
+      { key:'adspend',   label:'Ad Spend',               min:1,    max:1000000, def:8000, step:1,    fmt:'$k' },
+      { key:'ecomcvr',   label:'eCommerce CVR',          min:0.5,  max:25,      def:3.5,  step:0.5,  fmt:'%'  },
+      { key:'aov',       label:'Avg. Order Value',       min:10,   max:2000,    def:300,  step:10,   fmt:'$k' },
+      { key:'ltv',       label:'LTV',                    min:100,  max:100000,  def:630,  step:100,  fmt:'$k' },
+      { key:'maxcpa',    label:'Max CPA',                min:1,    max:50000,   def:null, step:1,    fmt:'$k', derived:'ltv3' },
+      { key:'mgmtfee',   label:'Monthly Management Fee', min:1000, max:100000,  def:4000, step:1000, fmt:'$k' },
+      { key:'margin',    label:'Profit Margin',          min:1,    max:100,     def:55,   step:1,    fmt:'%'  },
+    ],
+    ecommerce_organic: [
+      { key:'ctrorg',    label:'CTR (Organic)',           min:1,    max:25,      def:17,   step:1,    fmt:'%'  },
+      { key:'searchvol', label:'Keyword Search Volume',   min:1000, max:500000,  def:90000,step:1000, fmt:'n'  },
+      { key:'ecomcvr',   label:'eCommerce CVR',          min:0.5,  max:25,      def:2.5,  step:0.5,  fmt:'%'  },
+      { key:'aov',       label:'Avg. Order Value',       min:10,   max:2000,    def:300,  step:10,   fmt:'$k' },
+      { key:'ltv',       label:'LTV',                    min:100,  max:100000,  def:650,  step:100,  fmt:'$k' },
+      { key:'maxcpa',    label:'Max CPA',                min:1,    max:50000,   def:null, step:1,    fmt:'$k', derived:'ltv3' },
+      { key:'mgmtfee',   label:'Monthly Management Fee', min:1000, max:100000,  def:4250, step:250,  fmt:'$k' },
+      { key:'margin',    label:'Profit Margin',          min:1,    max:100,     def:55,   step:1,    fmt:'%'  },
+    ],
+  };
+  return C[m] || C['leadgen_paid'];
+}
+
+// ─── FORMAT ───────────────────────────────────────────────────────────────────
+function fmtN(v,d)  { return (!isFinite(v)||isNaN(v)) ? '—' : Number(v).toLocaleString('en-AU',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fmtD(v)    { return (!isFinite(v)||isNaN(v)) ? '—' : '$'+fmtN(v,0); }
+function fmtD2(v)   { return (!isFinite(v)||isNaN(v)) ? '—' : '$'+fmtN(v,2); }
+function fmtPct(v)  { return (!isFinite(v)||isNaN(v)) ? '—' : fmtN(v*100,2)+'%'; }
+function fmtX(v)    { return (!isFinite(v)||isNaN(v)) ? '—' : fmtN(v,2)+'x'; }
+
+// Format raw number for display inside the editable input field (no commas — just the plain number)
+function rawDisplay(v, fmt, dp) {
+  if (fmt === '$')  return parseFloat(v.toFixed(dp !== undefined ? dp : 2));
+  if (fmt === '$k') return Math.round(v);
+  if (fmt === '%')  return parseFloat(v.toFixed(dp !== undefined ? dp : 2));
+  if (fmt === 'n')  return Math.round(v);
+  return v;
+}
+
+// Prefix for the input field placeholder visual (we'll use a wrapper approach)
+function fmtPrefix(fmt) {
+  if (fmt === '$' || fmt === '$k') return '$';
+  if (fmt === '%') return '';
+  return '';
+}
+function fmtSuffix(fmt) {
+  if (fmt === '%') return '%';
+  return '';
+}
+
+// ─── SLIDER BACKGROUND ────────────────────────────────────────────────────────
+function setSliderBg(el, v, min, max) {
+  const pct = Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+  el.style.background = `linear-gradient(to right, var(--pink) ${pct}%, var(--track) ${pct}%)`;
+}
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+function g(k)  { return parseFloat(state.values[k]) || 0; }
+function gp(k) { return g(k) / 100; }
+
+// ─── BUILD SLIDERS ────────────────────────────────────────────────────────────
+function buildSliders() {
+  const configs = getConfig();
+  currentConfigs = configs;
+  const container = document.getElementById('sliders-container');
+  container.innerHTML = '';
+
+  // Add industry selector for organic modes
+  if (state.trafficType === 'organic') {
+    const industryRow = document.createElement('div');
+    industryRow.className = 'input-row';
+    industryRow.innerHTML = `
+      <div class="input-name">Industry</div>
+      <div style="grid-column:span 2; padding-right:0">
+        <select id="industry-select" style="
+          width:100%; background:var(--grey3); border:1px solid var(--grey5);
+          border-radius:4px; color:var(--white); font-family:'DM Sans',sans-serif;
+          font-size:13px; font-weight:600; padding:6px 10px; outline:none;
+          cursor:pointer; transition:border-color 0.15s; -webkit-appearance:none; appearance:none;
+          background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'6\'%3E%3Cpath d=\'M0 0l5 6 5-6z\' fill=\'%23f0286a\'/%3E%3C/svg%3E');
+          background-repeat:no-repeat; background-position:right 10px center;
+          background-color:var(--grey3);
+        ">
+          <option value="">Select industry (optional)</option>
+          ${Object.keys(industryCtrs).filter(k=>k!=='').map(k =>
+            `<option value="${k}">${k}</option>`
+          ).join('')}
+        </select>
+      </div>
+    `;
+    container.appendChild(industryRow);
+
+    document.getElementById('industry-select').addEventListener('change', function() {
+      const ctr = industryCtrs[this.value];
+      if (ctr !== null && ctr !== undefined) {
+        const ctrCfg = configs.find(c => c.key === 'ctrorg');
+        if (ctrCfg) {
+          state.values['ctrorg'] = ctr;
+          const sl = document.getElementById('sl_ctrorg');
+          const vi = document.getElementById('vi_ctrorg');
+          const sd = document.getElementById('sd_ctrorg');
+          if (sl) { sl.value = ctr; setSliderBg(sl, ctr, ctrCfg.min, ctrCfg.max); }
+          if (vi) vi.value = ctr.toFixed(ctrCfg.dp !== undefined ? ctrCfg.dp : 1);
+          if (sd) sd.textContent = ctr.toFixed(ctrCfg.dp !== undefined ? ctrCfg.dp : 1) + '%';
+          calculate();
+        }
+      }
+    });
+  }
+
+  configs.forEach(cfg => {
+    // Determine initial value
+    let val;
+    if (cfg.derived === 'ltv3') {
+      const ltvCfg = configs.find(c => c.key === 'ltv');
+      const ltvVal = state.values['ltv'] ?? ltvCfg.def;
+      val = clamp(Math.round(ltvVal / 3), cfg.min, cfg.max);
+    } else {
+      val = state.values[cfg.key] ?? cfg.def;
+    }
+    state.values[cfg.key] = val;
+
+    const pct = Math.max(0, Math.min(100, ((val - cfg.min) / (cfg.max - cfg.min)) * 100));
+    const prefix = fmtPrefix(cfg.fmt);
+    const suffix = fmtSuffix(cfg.fmt);
+    const displayVal = rawDisplay(val, cfg.fmt, cfg.dp);
+    const hasPfx = prefix !== '';
+    const hasSfx = suffix !== '';
+    const inputCls = 'val-input' + (hasPfx ? ' has-prefix' : '') + (hasSfx ? ' has-suffix' : '');
+
+    const row = document.createElement('div');
+    row.className = 'input-row';
+
+    row.innerHTML = `
+      <div class="input-name">${cfg.label}</div>
+      <div>
+        <input type="range" id="sl_${cfg.key}"
+          min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${val}"
+          style="background:linear-gradient(to right,var(--pink) ${pct}%,var(--track) ${pct}%)">
+      </div>
+      <div class="val-wrap">
+        ${hasPfx ? '<span class="val-prefix">' + prefix + '</span>' : ''}
+        <input type="number" class="${inputCls}" id="vi_${cfg.key}"
+          value="${displayVal}"
+          min="${cfg.min}" max="${cfg.max}" step="${cfg.step}">
+        ${hasSfx ? '<span class="val-suffix">' + suffix + '</span>' : ''}
+      </div>
+    `;
+    container.appendChild(row);
+
+    const slider = document.getElementById('sl_' + cfg.key);
+    const valInput = document.getElementById('vi_' + cfg.key);
+
+    // Slider moved → update value input + recalc
+    slider.addEventListener('input', () => {
+      const v = parseFloat(slider.value);
+      state.values[cfg.key] = v;
+      
+      if (cfg.key === 'ltv') syncMaxCpa(v, configs);
+      setSliderBg(slider, v, cfg.min, cfg.max);
+      valInput.value = rawDisplay(v, cfg.fmt, cfg.dp);
+      calculate();
+    });
+
+    // User types in the field → clamp, snap to step, update slider + recalc
+    valInput.addEventListener('change', () => {
+      let v = parseFloat(valInput.value);
+      if (isNaN(v)) v = state.values[cfg.key];
+      v = parseFloat(clamp(v, cfg.min, cfg.max).toFixed(10));
+      state.values[cfg.key] = v;
+      
+      if (cfg.key === 'ltv') syncMaxCpa(v, configs);
+      slider.value = v;
+      setSliderBg(slider, v, cfg.min, cfg.max);
+      valInput.value = rawDisplay(v, cfg.fmt, cfg.dp);
+      calculate();
+    });
+
+    // Live typing updates slider preview without snapping (snaps on blur/enter)
+    valInput.addEventListener('input', () => {
+      const v = parseFloat(valInput.value);
+      if (!isNaN(v) && v >= cfg.min && v <= cfg.max) {
+        slider.value = v;
+        setSliderBg(slider, v, cfg.min, cfg.max);
+      }
+    });
+
+    // Enter key → commit value then move focus to next field
+    valInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        valInput.dispatchEvent(new Event('change'));
+        const allInputs = Array.from(document.querySelectorAll('.val-input'));
+        const idx = allInputs.indexOf(valInput);
+        if (idx >= 0 && idx < allInputs.length - 1) {
+          allInputs[idx + 1].focus();
+          allInputs[idx + 1].select();
+        }
+      }
+    });
+  });
+}
+
+function syncMaxCpa(ltvVal, configs) {
+  const mcCfg = (configs || currentConfigs).find(c => c.key === 'maxcpa');
+  if (!mcCfg) return;
+  const nv = clamp(Math.round(ltvVal / 3 / mcCfg.step) * mcCfg.step, mcCfg.min, mcCfg.max);
+  state.values['maxcpa'] = nv;
+  const sl = document.getElementById('sl_maxcpa');
+  const vi = document.getElementById('vi_maxcpa');
+  if (sl) { sl.value = nv; setSliderBg(sl, nv, mcCfg.min, mcCfg.max); }
+  if (vi) vi.value = rawDisplay(nv, mcCfg.fmt);
+}
+
+// ─── CALCULATE ────────────────────────────────────────────────────────────────
+function calculate() {
+  const mode = state.clientType + '_' + state.trafficType;
+  let results = [], computed = {};
+
+  if (mode === 'leadgen_paid') {
+    const cpc=g('cpc'), ctrRaw=g('ctr'), ctrPct=ctrRaw/100, adspend=g('adspend');
+    const bookedcvr=gp('bookedcvr'), showrate=gp('showrate'), closerate=gp('closerate');
+    const ltv=g('ltv'), mgmtfee=g('mgmtfee'), margin=gp('margin');
+
+    const linkClicks    = cpc>0 ? adspend/cpc : 0;
+    const impressions   = linkClicks * ctrRaw * 100;
+    const cpm           = impressions>0 ? adspend/impressions*1000 : 0;
+    const bookedLeads   = linkClicks*bookedcvr;
+    const bookedCPL     = bookedLeads>0 ? adspend/bookedLeads : 0;
+    const heldCalls     = bookedLeads*showrate;
+    const costPerHeld   = heldCalls>0 ? adspend/heldCalls : 0;
+    const sales         = Math.floor(heldCalls*closerate);
+    const lifetimeRev   = sales*ltv;
+    const cpa           = sales>0 ? (adspend+mgmtfee)/sales : 0;
+    const lifetimeROAS  = adspend>0 ? lifetimeRev/adspend : 0;
+    const lifetimeROI   = (adspend+mgmtfee)>0 ? (lifetimeRev*margin-adspend-mgmtfee)/(adspend+mgmtfee) : 0;
+    const lifetimeProfit= lifetimeRev*margin - adspend - mgmtfee;
+    const maxCPA        = g('maxcpa');
+    const maxBookedCPL  = (showrate>0&&closerate>0) ? maxCPA * showrate * closerate : 0;
+    const maxHeldCPL    = closerate>0 ? maxCPA * closerate : 0;
+
+    computed = {cpc,ctr:ctrPct,ctrRaw,cpm,impressions,linkClicks,bookedLeads,bookedCPL,heldCalls,costPerHeld,
+                sales,lifetimeRev,cpa,lifetimeROAS,lifetimeROI,lifetimeProfit,
+                adspend,mgmtfee,margin,ltv,showrate,closerate,bookedcvr};
+    results = [
+      {label:'CPM',                val:fmtD2(cpm)},
+      {label:'Impressions',        val:fmtN(impressions,0)},
+      {label:'Link Clicks',        val:fmtN(linkClicks,0)},
+      {label:'Booked Call Leads',  val:fmtN(bookedLeads,0)},
+      {label:'Booked Call CPL',    val:fmtD2(bookedCPL)},
+      {label:'Held Calls',         val:fmtN(heldCalls,0)},
+      {label:'Cost Per Held Call', val:fmtD2(costPerHeld)},
+      {label:'Sales',              val:fmtN(sales,0)},
+      {label:'Monthly Revenue',        val:fmtD(lifetimeRev),    cls: lifetimeRev>0 ? 'pos' : 'neg'},
+      {label:'CPA',                val:fmtD2(cpa)},
+      {label:'Lifetime ROAS',      val:fmtX(lifetimeROAS),   cls:'pink'},
+      {label:'Lifetime ROI',       val:fmtN(lifetimeROI,2),  cls:lifetimeROI>=0?'pos':'neg'},
+      {label:'Lifetime Profit',    val:fmtD(lifetimeProfit), cls:lifetimeProfit>=0?'pos':'neg'},
+      {label:'Max Booked Call CPL',val:fmtD2(maxBookedCPL)},
+      {label:'Max Held Call CPL',  val:fmtD2(maxHeldCPL)},
+    ];
+
+  } else if (mode === 'leadgen_organic') {
+    const ctrorg=gp('ctrorg'), searchvol=g('searchvol'), webcvr=gp('webcvr');
+    const showrate=gp('showrate'), closerate=gp('closerate');
+    const ltv=g('ltv'), mgmtfee=g('mgmtfee'), margin=gp('margin');
+
+    const visitors      = searchvol*ctrorg*0.70;
+    const leads         = visitors*webcvr;
+    const heldCalls     = leads*showrate;
+    const sales         = Math.floor(heldCalls*closerate);
+    const lifetimeRev   = sales*ltv;
+    const cpa           = sales>0 ? mgmtfee/sales : 0;
+    const lifetimeROAS  = mgmtfee>0 ? lifetimeRev/mgmtfee : 0;
+    const lifetimeROI   = mgmtfee>0 ? (lifetimeRev*margin-mgmtfee)/mgmtfee : 0;
+    const lifetimeProfit= lifetimeRev*margin - mgmtfee;
+
+    computed = {visitors,leads,heldCalls,sales,lifetimeRev,cpa,lifetimeROAS,lifetimeROI,
+                lifetimeProfit,mgmtfee,margin,ltv,webcvr,showrate,closerate};
+    results = [
+      {label:'Visitors',        val:fmtN(visitors,0)},
+      {label:'Leads',           val:fmtN(leads,0)},
+      {label:'Held Calls',      val:fmtN(heldCalls,0)},
+      {label:'Sales',           val:fmtN(sales,0)},
+      {label:'Monthly Revenue',    val:fmtD(lifetimeRev),    cls: lifetimeRev>0 ? 'pos' : 'neg'},
+      {label:'CPA',             val:fmtD2(cpa)},
+      {label:'Lifetime ROAS',  val:fmtX(lifetimeROAS),   cls:'pink'},
+      {label:'Lifetime ROI',   val:fmtN(lifetimeROI,2),  cls:lifetimeROI>=0?'pos':'neg'},
+      {label:'Lifetime Profit',val:fmtD(lifetimeProfit), cls:lifetimeProfit>=0?'pos':'neg'},
+    ];
+
+  } else if (mode === 'ecommerce_paid') {
+    const cpc=g('cpc'), ctrRaw=g('ctr'), ctrPct=ctrRaw/100, adspend=g('adspend');
+    const ecomcvr=gp('ecomcvr'), aov=g('aov'), ltv=g('ltv');
+    const mgmtfee=g('mgmtfee'), margin=gp('margin');
+
+    const linkClicks    = cpc>0 ? adspend/cpc : 0;
+    const impressions   = linkClicks * ctrRaw * 100;
+    const cpm           = impressions>0 ? adspend/impressions*1000 : 0;
+    const sales         = linkClicks*ecomcvr;
+    const day1Rev       = sales*aov;
+    const lifetimeRev   = sales*ltv;
+    const cpa           = sales>0 ? adspend/sales : 0;
+    const day1ROAS      = adspend>0 ? day1Rev/adspend : 0;
+    const lifetimeROAS  = adspend>0 ? lifetimeRev/adspend : 0;
+    const day1ROI       = (adspend+mgmtfee)>0 ? (day1Rev*margin-adspend-mgmtfee)/(adspend+mgmtfee) : 0;
+    const lifetimeROI   = (adspend+mgmtfee)>0 ? (lifetimeRev*margin-adspend-mgmtfee)/(adspend+mgmtfee) : 0;
+    const day1Profit    = day1Rev*margin - adspend - mgmtfee;
+    const lifetimeProfit= lifetimeRev*margin - adspend - mgmtfee;
+
+    computed = {cpc,ctr:ctrPct,ctrRaw,cpm,impressions,linkClicks,sales,day1Rev,lifetimeRev,cpa,
+                day1ROAS,lifetimeROAS,day1ROI,lifetimeROI,day1Profit,lifetimeProfit,
+                adspend,mgmtfee,margin,ltv,aov,ecomcvr};
+    results = [
+      {label:'CPM',             val:fmtD2(cpm)},
+      {label:'Impressions',     val:fmtN(impressions,0)},
+      {label:'Link Clicks',     val:fmtN(linkClicks,0)},
+      {label:'Sales',           val:fmtN(sales,2)},
+      {label:'First Purchase Revenue',   val:fmtD(day1Rev),         cls: day1Rev>0 ? 'pos' : 'neg'},
+      {label:'Monthly LTV Revenue',val:fmtD(lifetimeRev),    cls: lifetimeRev>0 ? 'pos' : 'neg'},
+      {label:'CPA',             val:fmtD2(cpa)},
+      {label:'First Purchase ROAS',      val:fmtX(day1ROAS)},
+      {label:'LTV ROAS',   val:fmtX(lifetimeROAS),   cls:'pink'},
+      {label:'First Purchase ROI',       val:fmtN(day1ROI,2),      cls:day1ROI>=0?'pos':'neg'},
+      {label:'LTV ROI',    val:fmtN(lifetimeROI,2),  cls:lifetimeROI>=0?'pos':'neg'},
+      {label:'First Purchase Profit',    val:fmtD(day1Profit),     cls:day1Profit>=0?'pos':'neg'},
+      {label:'LTV Profit', val:fmtD(lifetimeProfit), cls:lifetimeProfit>=0?'pos':'neg'},
+    ];
+
+  } else if (mode === 'ecommerce_organic') {
+    const ctrorg=gp('ctrorg'), searchvol=g('searchvol'), ecomcvr=gp('ecomcvr');
+    const aov=g('aov'), ltv=g('ltv'), mgmtfee=g('mgmtfee'), margin=gp('margin');
+
+    const visitors      = searchvol*ctrorg*0.70;
+    const sales         = visitors*ecomcvr;
+    const day1Rev       = sales*aov;
+    const lifetimeRev   = sales*ltv;
+    const cpa           = sales>0 ? mgmtfee/sales : 0;
+    const day1ROAS      = mgmtfee>0 ? day1Rev/mgmtfee : 0;
+    const lifetimeROAS  = mgmtfee>0 ? lifetimeRev/mgmtfee : 0;
+    const day1ROI       = mgmtfee>0 ? (day1Rev*margin-mgmtfee)/mgmtfee : 0;
+    const lifetimeROI   = mgmtfee>0 ? (lifetimeRev*margin-mgmtfee)/mgmtfee : 0;
+    const day1Profit    = day1Rev*margin - mgmtfee;
+    const lifetimeProfit= lifetimeRev*margin - mgmtfee;
+
+    computed = {visitors,sales,day1Rev,lifetimeRev,cpa,day1ROAS,lifetimeROAS,
+                day1ROI,lifetimeROI,day1Profit,lifetimeProfit,mgmtfee,margin,ltv,aov,ecomcvr};
+    results = [
+      {label:'Visitors',        val:fmtN(visitors,0)},
+      {label:'Sales',           val:fmtN(sales,2)},
+      {label:'First Purchase Revenue',   val:fmtD(day1Rev),         cls: day1Rev>0 ? 'pos' : 'neg'},
+      {label:'Monthly LTV Revenue',val:fmtD(lifetimeRev),    cls: lifetimeRev>0 ? 'pos' : 'neg'},
+      {label:'CPA',             val:fmtD2(cpa)},
+      {label:'First Purchase ROAS',      val:fmtX(day1ROAS)},
+      {label:'LTV ROAS',   val:fmtX(lifetimeROAS),   cls:'pink'},
+      {label:'First Purchase ROI',       val:fmtN(day1ROI,2),      cls:day1ROI>=0?'pos':'neg'},
+      {label:'LTV ROI',    val:fmtN(lifetimeROI,2),  cls:lifetimeROI>=0?'pos':'neg'},
+      {label:'First Purchase Profit',    val:fmtD(day1Profit),     cls:day1Profit>=0?'pos':'neg'},
+      {label:'LTV Profit', val:fmtD(lifetimeProfit), cls:lifetimeProfit>=0?'pos':'neg'},
+    ];
+  }
+
+  lastComputed = { ...computed, results };
+  renderRight();
+}
+
+// ─── RENDER RIGHT ─────────────────────────────────────────────────────────────
+function renderRight() {
+  const panel = document.getElementById('right-panel');
+  if (state.showRoasScale) {
+    panel.innerHTML = buildRoasHTML();
+    const sel = panel.querySelector('.roas-select');
+    if (sel) {
+      sel.value = state.targetRoas;
+      sel.addEventListener('change', () => { state.targetRoas = parseFloat(sel.value); renderRight(); });
+    }
+  } else {
+    const highlightKeys = ['Monthly Revenue','Monthly LTV Revenue','First Purchase Revenue','Lifetime ROAS','LTV ROAS','First Purchase ROAS','Lifetime ROI','LTV ROI','First Purchase ROI','Lifetime Profit','LTV Profit','First Purchase Profit'];
+    const rows = (lastComputed.results || []).map(r => {
+      const isHighlight = highlightKeys.includes(r.label);
+      return `<div class="result-row${isHighlight ? ' highlight' : ''}">
+        <div class="result-label">${r.label}</div>
+        <div class="result-value ${r.cls||''}">${r.val}</div>
+      </div>`;
+    }).join('');
+    panel.innerHTML = `<div class="section-title">Projected Results</div><div class="results-grid">${rows}</div>`;
+    updatePaybackVisibility();
+  }
+}
+
+// ─── ANNUAL PROJECTION ────────────────────────────────────────────────────────
+function calcYear1Figures(c, mode) {
+  // Sum revenue and profit over 12 months using the selectedRamp curve
+  const curve = rampProfiles[selectedRamp].curve;
+  const fullMonthlyRev = c.lifetimeRev || 0;
+  const mgmtfee = c.mgmtfee || 0;
+  const adspend = c.adspend || 0;
+  const margin  = c.margin  || 0;
+  let y1Rev = 0, y1Profit = 0, y1Sales = 0;
+  for (let i = 0; i < 12; i++) {
+    const pct = curve[i] / 100;
+    const mRev = fullMonthlyRev * pct;
+    const mCost = mgmtfee + adspend;
+    y1Rev    += mRev;
+    y1Profit += (mRev * margin) - mCost;
+    y1Sales  += (c.sales || 0) * pct;
+  }
+  const y1Mgmt  = mgmtfee * 12;
+  const y1Spend = adspend * 12;
+  return { y1Rev, y1Profit, y1Sales, y1Mgmt, y1Spend };
+}
+
+function buildAnnualHTML() {
+  const c = lastComputed;
+  const mode = state.clientType + '_' + state.trafficType;
+  if (!c || !c.results) return '';
+  const isOrganic = state.trafficType === 'organic';
+
+  let annRevenue, annProfit, annSpend, annMgmt, annROAS, annSales, subLabel;
+
+  if (mode === 'leadgen_paid') {
+    annRevenue = (c.lifetimeRev || 0) * 12;
+    annProfit  = (c.lifetimeProfit || 0) * 12;
+    annSpend   = (c.adspend || 0) * 12;
+    annMgmt    = (c.mgmtfee || 0) * 12;
+    annROAS    = annSpend > 0 ? annRevenue / annSpend : 0;
+    annSales   = (c.sales || 0) * 12;
+    subLabel   = fmtN(annSales, 0) + ' sales per year';
+
+  } else if (mode === 'leadgen_organic') {
+    annRevenue = (c.lifetimeRev || 0) * 12;
+    annProfit  = (c.lifetimeProfit || 0) * 12;
+    annSpend   = 0;
+    annMgmt    = (c.mgmtfee || 0) * 12;
+    annROAS    = annMgmt > 0 ? annRevenue / annMgmt : 0;
+    annSales   = (c.sales || 0) * 12;
+    subLabel   = fmtN(annSales, 0) + ' sales per year';
+
+  } else if (mode === 'ecommerce_paid') {
+    annRevenue = (c.lifetimeRev || 0) * 12;
+    annProfit  = (c.lifetimeProfit || 0) * 12;
+    annSpend   = (c.adspend || 0) * 12;
+    annMgmt    = (c.mgmtfee || 0) * 12;
+    annROAS    = annSpend > 0 ? annRevenue / annSpend : 0;
+    annSales   = (c.sales || 0) * 12;
+    subLabel   = fmtN(annSales, 0) + ' sales per year';
+
+  } else if (mode === 'ecommerce_organic') {
+    annRevenue = (c.lifetimeRev || 0) * 12;
+    annProfit  = (c.lifetimeProfit || 0) * 12;
+    annSpend   = 0;
+    annMgmt    = (c.mgmtfee || 0) * 12;
+    annROAS    = annMgmt > 0 ? annRevenue / annMgmt : 0;
+    annSales   = (c.sales || 0) * 12;
+    subLabel   = fmtN(annSales, 0) + ' sales per year';
+  } else { return ''; }
+
+  // If Year 1 view and organic — override with ramp-adjusted figures
+  let displayRev, displayProfit, displayROAS, displaySales, displaySubLabel, viewNote;
+  if (annualView === 'year1' && isOrganic) {
+    const y1 = calcYear1Figures(c, mode);
+    displayRev    = y1.y1Rev;
+    displayProfit = y1.y1Profit;
+    displaySales  = y1.y1Sales;
+    const y1Invest = y1.y1Mgmt + y1.y1Spend;
+    displayROAS   = y1.y1Mgmt > 0 ? y1.y1Rev / y1.y1Mgmt : 0;
+    displaySubLabel = fmtN(displaySales, 0) + ' sales in year 1';
+    viewNote = `Based on <strong>${rampProfiles[selectedRamp].label}</strong> ramp (${rampProfiles[selectedRamp].sub})`;
+  } else {
+    displayRev    = annRevenue;
+    displayProfit = annProfit;
+    displayROAS   = annROAS;
+    displaySales  = annSales;
+    displaySubLabel = subLabel;
+    viewNote = 'At full projected traffic — no ramp applied';
+  }
+
+  const totalInvestment = annSpend + annMgmt;
+  const isPaid = state.trafficType === 'paid';
+
+  // Ramp selector — shown inside Year 1 view for organic
+  const rampSelectorHTML = (isOrganic && annualView === 'year1') ? `
+    <div style="margin-bottom:8px;font-size:11px;font-weight:600;color:var(--white);opacity:0.6;text-transform:uppercase;letter-spacing:1px;">SEO Ramp Speed</div>
+    <div class="ramp-selector" style="margin-bottom:20px;">
+      ${['fast','medium','slow'].map(k=>`
+        <button class="ramp-btn ${selectedRamp===k?'active':''}" onclick="setRampFromAnnual('${k}')">
+          <span class="ramp-label">${rampProfiles[k].label}</span>
+          <span class="ramp-sub">${rampProfiles[k].sub}</span>
+        </button>`).join('')}
+    </div>` : '';
+
+  // View toggle — only show for organic
+  const viewToggleHTML = isOrganic ? `
+    <div class="view-toggle">
+      <button class="view-toggle-btn ${annualView==='full'?'active':''}" onclick="setAnnualView('full')">Full Potential</button>
+      <button class="view-toggle-btn ${annualView==='year1'?'active':''}" onclick="setAnnualView('year1')">Year 1 Actual</button>
+    </div>
+    ${rampSelectorHTML}` : '';
+
+  // Use displayProfit/displayRev consistently for the investment card
+  const displayTotalInvest = totalInvestment; // investment is always full 12 months of fees
+
+  return `
+  <div class="annual-panel">
+    <div class="annual-title">Annual Projection</div>
+    ${viewToggleHTML}
+    <div class="annual-grid">
+      <div class="annual-card featured">
+        <div class="annual-card-label">${annualView==='year1'&&isOrganic?'Year 1 LTV Revenue':'Annual LTV Revenue'}</div>
+        <div class="annual-card-value" style="color:${displayRev>0?'var(--pos)':'var(--neg)'}">${fmtD(displayRev)}</div>
+        <div class="annual-card-sub">${displaySubLabel}</div>
+      </div>
+      <div class="annual-card">
+        <div class="annual-card-label">${annualView==='year1'&&isOrganic?'Year 1 LTV Profit':'Annual LTV Profit'}</div>
+        <div class="annual-card-value" style="color:${displayProfit>=0?'var(--pos)':'var(--neg)'}">${fmtD(displayProfit)}</div>
+        <div class="annual-card-sub">${fmtN((c.margin||0)*100,0)}% margin applied</div>
+      </div>
+      <div class="annual-card">
+        <div class="annual-card-label">Annual ROAS</div>
+        <div class="annual-card-value">${fmtX(displayROAS)}</div>
+        <div class="annual-card-sub">vs ${isPaid?'ad spend':'mgmt fees'}</div>
+      </div>
+      <div class="annual-card">
+        <div class="annual-card-label">Annual ROI</div>
+        <div class="annual-card-value" style="color:${displayTotalInvest>0?(((displayRev*c.margin-displayTotalInvest)/displayTotalInvest)>=0?'var(--pos)':'var(--neg)'):'var(--white)'}">
+          ${displayTotalInvest>0 ? fmtN(((displayRev*c.margin-displayTotalInvest)/displayTotalInvest)*100,1)+'%' : '—'}
+        </div>
+        <div class="annual-card-sub">Net return on total investment</div>
+      </div>
+      ${isPaid ? `<div class="annual-card">
+        <div class="annual-card-label">Annual Ad Spend</div>
+        <div class="annual-card-value">${fmtD(annSpend)}</div>
+        <div class="annual-card-sub">${fmtD(annMgmt)} mgmt fees</div>
+      </div>` : `<div class="annual-card">
+        <div class="annual-card-label">Annual Mgmt Fees</div>
+        <div class="annual-card-value">${fmtD(annMgmt)}</div>
+        <div class="annual-card-sub">Total investment</div>
+      </div>`}
+      <div class="annual-card" style="grid-column:span 2">
+        <div class="annual-card-label">Total Annual Investment (Management Fees + Ad Spend)</div>
+        <div class="annual-card-value">${fmtD(displayTotalInvest)}</div>
+        <div class="annual-card-sub" style="color:${displayProfit>=0?'var(--pos)':'var(--neg)'}">${displayProfit >= 0 ? `Profit of ${fmtD(displayProfit)} above investment` : `Loss of ${fmtD(Math.abs(displayProfit))} below investment`}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── ROAS SCALE ───────────────────────────────────────────────────────────────
+function buildRoasHTML() {
+  const tr = state.targetRoas, c = lastComputed;
+  const mode = state.clientType + '_' + state.trafficType;
+  let rows = [];
+
+  if (mode === 'leadgen_paid') {
+    const tRev=c.adspend*tr, tSales=c.ltv>0?tRev/c.ltv:0;
+    const tHeld=c.closerate>0?tSales/c.closerate:0;
+    const tBooked=c.showrate>0?tHeld/c.showrate:0;
+    const tClicks=c.bookedcvr>0?tBooked/c.bookedcvr:0;
+    const tCPC=tClicks>0?c.adspend/tClicks:0;
+    const tImpr=c.ctrRaw>0?tClicks*c.ctrRaw*100:0;
+    const tCPM=tImpr>0?c.adspend/tImpr*1000:0;
+    const tBCPL=tBooked>0?c.adspend/tBooked:0;
+    const tHCost=tHeld>0?c.adspend/tHeld:0;
+    const tCPA=tSales>0?(c.adspend+c.mgmtfee)/tSales:0;
+    rows=[
+      {label:'CPA',                val:fmtD2(tCPA)},
+      {label:'CPC',                val:fmtD2(tCPC)},
+      {label:'CPM',                val:fmtD2(tCPM)},
+      {label:'Impressions',        val:fmtN(tImpr,2)},
+      {label:'Link Clicks',        val:fmtN(tClicks,2)},
+      {label:'Booked Call Leads',  val:fmtN(tBooked,2)},
+      {label:'Booked Call CPL',    val:fmtD2(tBCPL)},
+      {label:'Held Calls',         val:fmtN(tHeld,2)},
+      {label:'Cost Per Held Call', val:fmtD2(tHCost)},
+      {label:'Sales',              val:fmtN(tSales,2)},
+    ];
+  } else if (mode === 'leadgen_organic') {
+    const tRev=c.mgmtfee*tr, tSales=c.ltv>0?tRev/c.ltv:0;
+    const tHeld=c.closerate>0?tSales/c.closerate:0;
+    const tLeads=c.showrate>0?tHeld/c.showrate:0;
+    const tVis=c.webcvr>0?tLeads/c.webcvr:0;
+    const tCPA=tSales>0?c.mgmtfee/tSales:0;
+    rows=[
+      {label:'CPA',        val:fmtD2(tCPA)},
+      {label:'Visitors',   val:fmtN(tVis,2)},
+      {label:'Leads',      val:fmtN(tLeads,2)},
+      {label:'Held Calls', val:fmtN(tHeld,2)},
+      {label:'Sales',      val:fmtN(tSales,2)},
+    ];
+  } else if (mode === 'ecommerce_paid') {
+    const tLtRev=c.adspend*tr, tSales=c.ltv>0?tLtRev/c.ltv:0;
+    const tD1Rev=tSales*c.aov;
+    const tD1ROAS=c.adspend>0?tD1Rev/c.adspend:0;
+    const tCPA=tSales>0?c.adspend/tSales:0;
+    const tClicks=c.ecomcvr>0?tSales/c.ecomcvr:0;
+    const tCPC=tClicks>0?c.adspend/tClicks:0;
+    const tImpr=c.ctrRaw>0?tClicks*c.ctrRaw*100:0;
+    const tCPM=tImpr>0?c.adspend/tImpr*1000:0;
+    rows=[
+      {label:'CPA',           val:fmtD2(tCPA)},
+      {label:'CPC',           val:fmtD2(tCPC)},
+      {label:'CPM',           val:fmtD2(tCPM)},
+      {label:'Impressions',   val:fmtN(tImpr,2)},
+      {label:'Link Clicks',   val:fmtN(tClicks,2)},
+      {label:'Sales',         val:fmtN(tSales,2)},
+      {label:'First Purchase Revenue', val:fmtD(tD1Rev)},
+      {label:'First Purchase ROAS',    val:fmtX(tD1ROAS)},
+    ];
+  } else if (mode === 'ecommerce_organic') {
+    const tLtRev=c.mgmtfee*tr, tSales=c.ltv>0?tLtRev/c.ltv:0;
+    const tD1Rev=tSales*c.aov;
+    const tD1ROAS=c.mgmtfee>0?tD1Rev/c.mgmtfee:0;
+    const tCPA=tSales>0?c.mgmtfee/tSales:0;
+    const tVis=c.ecomcvr>0?tSales/c.ecomcvr:0;
+    rows=[
+      {label:'CPA',           val:fmtD2(tCPA)},
+      {label:'Visitors',      val:fmtN(tVis,2)},
+      {label:'Sales',         val:fmtN(tSales,2)},
+      {label:'First Purchase Revenue', val:fmtD(tD1Rev)},
+      {label:'First Purchase ROAS',    val:fmtX(tD1ROAS)},
+    ];
+  }
+
+  const rowHTML = rows.map(r =>
+    `<div class="result-row">
+      <div class="result-label">${r.label}</div>
+      <div class="result-value">${r.val}</div>
+    </div>`).join('');
+
+  return `
+    <div class="section-title">ROAS Scale</div>
+    <p class="roas-subtitle">Based on the data entered, these are the results that need to be achieved to attain the target ROAS.</p>
+    <div class="roas-target-row">
+      <div class="roas-target-label">Target ROAS</div>
+      <select class="roas-select">
+        <option value="2">1:2</option>
+        <option value="3">1:3</option>
+        <option value="5">1:5</option>
+        <option value="8">1:8</option>
+        <option value="10">1:10</option>
+      </select>
+    </div>
+    <div class="results-grid">${rowHTML}</div>`;
+}
+
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
+function render() { buildSliders(); calculate(); }
+render();
+
+// ─── PAYBACK PERIOD ───────────────────────────────────────────────────────────
+const industryCtrs = {
+  '':                       null,
+  'Legal':                  6.5,
+  'Healthcare / Medical':   6.0,
+  'Finance / Insurance':    5.0,
+  'eCommerce / Retail':     5.5,
+  'Real Estate':            7.5,
+  'Home Services / Trades': 7.0,
+  'SaaS / Technology':      5.5,
+  'Education':              7.0,
+  'Travel & Hospitality':   7.0,
+  'Skincare / Beauty':      5.5,
+  'Food & Beverage':        7.5,
+  'Automotive':             6.0,
+  'Professional Services':  7.0,
+};
+
+const rampProfiles = {
+  fast: {
+    label: 'Fast',
+    sub: '6–9 months',
+    desc: 'Existing authority, strong technical base, or low-competition keywords',
+    // Months 1-3: zero traffic (groundwork phase)
+    // Traffic begins month 4, reaches 100% by month 9
+    curve: [0,3,8,15,24,35,48,62,77,90,100,100,100,100,100,100,100,100,100,100,100,100,100,100]
+  },
+  medium: {
+    label: 'Medium',
+    sub: '9–12 months',
+    desc: 'Typical new SEO campaign with moderate competition',
+    // Months 1-4: zero traffic (longer groundwork in competitive space)
+    // Traffic begins month 5, reaches 100% by month 12
+    curve: [0,0,3,7,12,19,27,36,46,57,69,82,94,100,100,100,100,100,100,100,100,100,100,100]
+  },
+  slow: {
+    label: 'Slow',
+    sub: '12–18 months',
+    desc: 'Highly competitive space, new domain, or significant groundwork required',
+    // Months 1-5: zero traffic (extensive groundwork required)
+    // Traffic begins month 6, reaches 100% by month 18
+    curve: [0,0,0,5,8,12,16,20,25,31,38,46,55,63,70,82,92,100,100,100,100,100,100,100]
+  }
+};
+
+let selectedRamp = 'medium';
+let annualView = 'full'; // 'full' or 'year1'
+
+function calcPayback(rampKey) {
+  const c = lastComputed;
+  const curve = rampProfiles[rampKey].curve;
+  const mgmtfee = c.mgmtfee || 0;
+  const margin   = c.margin  || 0;
+  // Full monthly revenue at 100% traffic
+  const fullMonthlyRev = c.lifetimeRev || 0;
+  // Option 2: payback = month when cumulative gross profit (revenue × margin)
+  // first exceeds total management fees paid to date.
+  // This means the client has earned back every dollar invested through profit.
+  let cumGrossProfit = 0;   // running total of (revenue × margin)
+  let cumFeesPaid    = 0;   // running total of management fees paid
+  let cumProfit      = 0;   // net: cumGrossProfit - cumFeesPaid (for chart)
+  let paybackMonth   = null;
+  const months = [];
+
+  for (let i = 0; i < 24; i++) {
+    const trafficPct  = curve[i] / 100;
+    const monthRev    = fullMonthlyRev * trafficPct;
+    const monthGross  = monthRev * margin;
+    const monthProfit = monthGross - mgmtfee;
+    cumGrossProfit += monthGross;
+    cumFeesPaid    += mgmtfee;
+    cumProfit      += monthProfit;
+    months.push({ month: i + 1, monthProfit, cumProfit, cumGrossProfit, cumFeesPaid, trafficPct });
+    // Payback: cumulative gross profit has covered all fees paid so far
+    if (paybackMonth === null && cumGrossProfit >= cumFeesPaid) paybackMonth = i + 1;
+  }
+  return { months, paybackMonth, finalCumProfit: cumProfit };
+}
+
+function buildPaybackHTML() {
+  const c = lastComputed;
+  if (!c || !c.results) return '';
+
+  const { months, paybackMonth, finalCumProfit } = calcPayback(selectedRamp);
+  const profile = rampProfiles[selectedRamp];
+
+  // Ramp selector
+  const rampBtns = ['fast','medium','slow'].map(k => `
+    <button class="ramp-btn ${selectedRamp===k?'active':''}" onclick="selectRamp('${k}')">
+      <span class="ramp-label">${rampProfiles[k].label}</span>
+      <span class="ramp-sub">${rampProfiles[k].sub}</span>
+    </button>`).join('');
+
+  // Hero
+  const heroHTML = paybackMonth === null
+    ? `<div class="payback-not-viable">⚠️ Campaign does not reach payback within 24 months at current settings. Consider increasing margin or reducing management fee.</div>`
+    : `<div class="payback-hero">
+        <div class="payback-hero-label">Estimated Payback Period</div>
+        <div class="payback-hero-value">Month ${paybackMonth}</div>
+        <div class="payback-hero-sub">Month when cumulative gross profit covers all fees paid</div>
+      </div>`;
+
+  // Summary stats
+  const cumProfit24 = finalCumProfit;
+  const avgMonthlyRevAtFull = c.lifetimeRev || 0;
+  const summaryHTML = `
+    <div class="payback-summary-grid">
+      <div class="payback-stat">
+        <div class="payback-stat-label">Net Cumulative Profit (24 months)</div>
+        <div class="payback-stat-value ${cumProfit24>=0?'pos':'neg'}">${fmtD(cumProfit24)}</div>
+      </div>
+      <div class="payback-stat">
+        <div class="payback-stat-label">Monthly Revenue at Full Traffic</div>
+        <div class="payback-stat-value">${fmtD(avgMonthlyRevAtFull)}</div>
+      </div>
+      <div class="payback-stat">
+        <div class="payback-stat-label">Monthly Mgmt Fee</div>
+        <div class="payback-stat-value">${fmtD(c.mgmtfee)}</div>
+      </div>
+      <div class="payback-stat">
+        <div class="payback-stat-label">Months to Full Traffic</div>
+        <div class="payback-stat-value">${profile.curve.indexOf(100) + 1}</div>
+      </div>
+    </div>`;
+
+  // Chart — cumulative profit over 24 months
+  const maxAbs = Math.max(...months.map(m => Math.abs(m.cumProfit)), 1);
+  const chartHeight = 120;
+  const barsHTML = months.map((m, i) => {
+    const isBreakeven = m.month === paybackMonth;
+    const pct = Math.abs(m.cumProfit) / maxAbs;
+    const h = Math.max(Math.round(pct * chartHeight), 2);
+    const isPos = m.cumProfit >= 0;
+    const barClass = isBreakeven ? 'payback-bar breakeven' : (isPos ? 'payback-bar pos-bar' : 'payback-bar neg-bar');
+    const trafficPct = Math.round(rampProfiles[selectedRamp].curve[i]);
+    const monthRevenue = (c.lifetimeRev || 0) * trafficPct / 100;
+    const breakEvenLabel = isBreakeven ? '<div class="bar-tooltip-row"><span>⭐ Break-even month</span></div>' : '';
+    const tooltip = `<div class="bar-tooltip">
+      <div class="bar-tooltip-month">Month ${m.month}</div>
+      <div class="bar-tooltip-row"><span>Traffic</span><span>${trafficPct}%</span></div>
+      <div class="bar-tooltip-row"><span>Monthly Revenue</span><span>${fmtD(monthRevenue)}</span></div>
+      <div class="bar-tooltip-row"><span>Monthly Profit</span><span style="color:${m.monthProfit>=0?'var(--pos)':'var(--neg)'}">${fmtD(m.monthProfit)}</span></div>
+      <div class="bar-tooltip-row"><span>Cum. Gross Profit</span><span style="color:var(--pos)">${fmtD(m.cumGrossProfit)}</span></div>
+      <div class="bar-tooltip-row"><span>Total Fees Paid</span><span style="color:var(--neg)">${fmtD(m.cumFeesPaid)}</span></div>
+      <div class="bar-tooltip-row"><span>Net Cumulative</span><span style="color:${m.cumProfit>=0?'var(--pos)':'var(--neg)'}">${fmtD(m.cumProfit)}</span></div>
+      ${breakEvenLabel}
+    </div>`;
+    // Right-side bars: anchor tooltip to right edge; left-side: to left edge
+    const posClass = i >= 18 ? ' tip-right' : (i <= 3 ? ' tip-left' : '');
+    return `<div class="payback-bar-wrap${posClass}">
+      ${tooltip}
+      ${isPos ? `<div class="${barClass}" style="height:${h}px"></div>` : `<div style="height:${chartHeight - h}px"></div>`}
+      <div class="payback-axis"></div>
+      ${!isPos ? `<div class="${barClass}" style="height:${h}px"></div>` : `<div style="height:0px"></div>`}
+    </div>`;
+  }).join('');
+  // Labels row — show every 4 months, month 1, and breakeven month
+  const labelsHTML = months.map((m) => {
+    const show = (m.month % 4 === 0 || m.month === 1 || m.month === paybackMonth);
+    return `<div class="payback-label-cell">${show ? m.month : ''}</div>`;
+  }).join('');
+
+  return `
+    <div style="margin-bottom:14px;font-size:12px;color:var(--white);opacity:0.6">Select the expected speed of SEO results for this client:</div>
+    <div class="ramp-selector">${rampBtns}</div>
+    ${heroHTML}
+    ${summaryHTML}
+    <div class="payback-chart-title">Cumulative Profit Over 24 Months</div>
+    <div class="payback-chart">
+      <div class="payback-bars-row">${barsHTML}</div>
+      <div class="payback-labels-row">${labelsHTML}</div>
+    </div>
+  `;
+}
+
+function selectRamp(key) {
+  selectedRamp = key;
+  document.getElementById('paybackModalBody').innerHTML = buildPaybackHTML();
+}
+
+function updatePaybackVisibility() {
+  const toggle = document.getElementById('paybackToggle');
+  if (toggle) {
+    toggle.style.display = state.trafficType === 'organic' ? 'flex' : 'none';
+  }
+}
+
+function openPaybackModal() {
+  document.getElementById('paybackModalBody').innerHTML = buildPaybackHTML();
+  document.getElementById('paybackModal').classList.add('open');
+  document.getElementById('switchPayback').classList.add('on');
+}
+function closePaybackModal() {
+  document.getElementById('paybackModal').classList.remove('open');
+  document.getElementById('switchPayback').classList.remove('on');
+}
+function handlePaybackModalClick(e) {
+  if (e.target === document.getElementById('paybackModal')) closePaybackModal();
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeAnnualModal(); closePaybackModal(); }
+});
+
+// ─── ANNUAL MODAL ──────────────────────────────────────────────────────────────
+function setRampFromAnnual(key) {
+  selectedRamp = key;
+  document.getElementById('annualModalBody').innerHTML = buildAnnualHTML();
+}
+
+function setAnnualView(view) {
+  annualView = view;
+  document.getElementById('annualModalBody').innerHTML = buildAnnualHTML();
+}
+
+function openAnnualModal() {
+  document.getElementById('annualModalBody').innerHTML = buildAnnualHTML();
+  document.getElementById('annualModal').classList.add('open');
+  document.getElementById('switchAnnual').classList.add('on');
+}
+function closeAnnualModal() {
+  document.getElementById('annualModal').classList.remove('open');
+  document.getElementById('switchAnnual').classList.remove('on');
+}
+function handleModalClick(e) {
+  if (e.target === document.getElementById('annualModal')) closeAnnualModal();
+}
+// Close on Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAnnualModal(); });
+</script>
+<div class="modal-overlay" id="annualModal" onclick="handleModalClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Annual Projection</div>
+      <button class="modal-close" onclick="closeAnnualModal()">✕</button>
+    </div>
+    <div class="modal-body" id="annualModalBody"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="paybackModal" onclick="handlePaybackModalClick(event)">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">Payback Period</div>
+      <button class="modal-close" onclick="closePaybackModal()">✕</button>
+    </div>
+    <div class="modal-body" id="paybackModalBody"></div>
+  </div>
+</div>
+</body>
+</html>
